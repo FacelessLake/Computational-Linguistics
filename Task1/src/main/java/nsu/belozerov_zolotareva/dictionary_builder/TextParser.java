@@ -1,4 +1,4 @@
-package nsu.belozerov_zolotareva.resolution_of_homonymy;
+package nsu.belozerov_zolotareva.dictionary_builder;
 
 import nsu.belozerov_zolotareva.lematization.Lemma;
 import nsu.belozerov_zolotareva.lematization.MorphologyDict;
@@ -57,6 +57,64 @@ public class TextParser {
         };
     }
 
+    public WordData resolveAmbiguity(ArrayList<Lemma> possibleLemmas) {
+        String word = null;
+        String wordPos = null;
+        WordData wordData;
+
+        if (possibleLemmas.size() == 1) {
+            Lemma lemma = possibleLemmas.get(0);
+            word = lemma.getWord();
+            /*
+            if (lemma.getGrammemes().get(0) == null) {
+                try {
+                    debugWriter.write(word + "\n");
+                    debugWriter.flush();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                continue;
+            }
+             */
+            wordPos = lemma.getGrammemes().get(0).getName();
+
+        } else {
+            Double maxIpm = 0.0;
+
+            for (Lemma possibleLemma : possibleLemmas) {
+                String possibleWord = possibleLemma.getWord();
+                FrequencyWordData possibleData = freqDictParser.getData(possibleWord);
+
+                if (possibleData.ipm() > maxIpm) {
+                    word = possibleWord;
+                    wordPos = renamerToCorpora(possibleData.pos());
+                    maxIpm = possibleData.ipm();
+                }
+            }
+
+            if (maxIpm == 0) {
+                word = possibleLemmas.get(0).getWord();
+                /*
+                if (possibleLemmas.get(0).getGrammemes().get(0) == null) {
+                    try {
+                        debugWriter.write(word + "\n");
+                        debugWriter.flush();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    continue;
+                }
+                 */
+                wordPos = possibleLemmas.get(0).getGrammemes().get(0).getName();
+            }
+
+        }
+
+        wordData = new WordData(word, wordPos);
+        return wordData;
+    }
+
+
     public void parseOneText(String text) {
         List<String> tokens = this.tokenize(text);
 
@@ -71,56 +129,10 @@ public class TextParser {
                 }
                 continue;
             }
+
             ArrayList<Lemma> possibleLemmas = new ArrayList<>(lemmaList);
-            String word = null;
-            String wordPos = null;
-            WordData wordData;
+            WordData wordData = this.resolveAmbiguity(possibleLemmas);
 
-            if (possibleLemmas.size() == 1) {
-                Lemma lemma = possibleLemmas.get(0);
-                word = lemma.getWord();
-                if (lemma.getGrammemes().get(0) == null) {
-                    try {
-                        debugWriter.write(word + "\n");
-                        debugWriter.flush();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    continue;
-                }
-                wordPos = lemma.getGrammemes().get(0).getName();
-
-            } else {
-                Double maxIpm = 0.0;
-
-                for (Lemma possibleLemma : possibleLemmas) {
-                    String possibleWord = possibleLemma.getWord();
-                    FrequencyWordData possibleData = freqDictParser.getData(possibleWord);
-
-                    if (possibleData.ipm() > maxIpm) {
-                        word = possibleWord;
-                        wordPos = renamerToCorpora(possibleData.pos());
-                        maxIpm = possibleData.ipm();
-                    }
-                }
-
-                if (maxIpm == 0) {
-                    word = possibleLemmas.get(0).getWord();
-                    if (possibleLemmas.get(0).getGrammemes().get(0) == null) {
-                        try {
-                            debugWriter.write(word + "\n");
-                            debugWriter.flush();
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                        continue;
-                    }
-                    wordPos = possibleLemmas.get(0).getGrammemes().get(0).getName();
-                }
-
-            }
-
-            wordData = new WordData(word, wordPos);
             Double lemmaIpm = lemmasFrequency.get(wordData);
             if (lemmaIpm != null) {
                 lemmaIpm++;
@@ -135,12 +147,7 @@ public class TextParser {
 
         List<Map.Entry<WordData, Double>> list = new LinkedList<>(hm.entrySet());
 
-        list.sort(new Comparator<>() {
-            public int compare(Map.Entry<WordData, Double> o1,
-                               Map.Entry<WordData, Double> o2) {
-                return -(o1.getValue()).compareTo(o2.getValue());
-            }
-        });
+        list.sort((o1, o2) -> -(o1.getValue()).compareTo(o2.getValue()));
 
 
         HashMap<WordData, Double> temp = new LinkedHashMap<>();

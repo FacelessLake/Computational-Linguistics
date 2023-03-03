@@ -1,4 +1,4 @@
-package nsu.belozerov_zolotareva.resolution_of_homonymy;
+package nsu.belozerov_zolotareva.dictionary_builder;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -21,7 +21,8 @@ public class FreqDictParser {
     }
 
     public void parse() {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), StandardCharsets.UTF_8))) {
+        try (BufferedReader br =
+                     new BufferedReader(new InputStreamReader(new FileInputStream(fileName), StandardCharsets.UTF_8))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split("\\s");

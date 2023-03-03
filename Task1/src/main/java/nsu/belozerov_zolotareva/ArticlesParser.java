@@ -1,6 +1,6 @@
 package nsu.belozerov_zolotareva;
 
-import nsu.belozerov_zolotareva.resolution_of_homonymy.TextParser;
+import nsu.belozerov_zolotareva.dictionary_builder.TextParser;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.IOException;
