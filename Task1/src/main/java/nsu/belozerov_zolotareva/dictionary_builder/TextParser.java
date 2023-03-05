@@ -30,9 +30,13 @@ public class TextParser {
         ocd = MorphologyDict.load("src/main/resources/dict.opcorpora.xml");
     }
 
+    public String acuteReplacer(String acuteText) {
+        return acuteText.replaceAll("\\u0301", "").replaceAll("[\\u00C1\\u00E1]", "\u0430").replaceAll("[\\u00C9\\u00E9]", "\u0435").replaceAll("[\\u00D3\\u00F3]", "\u043E").replaceAll("\\u00FD", "\u0443");
+    }
+
     public List<String> tokenize(String text) {
         List<String> tokens = new ArrayList<>();
-        String clearText = text.replaceAll("\\u0301", "").toLowerCase();
+        String clearText = acuteReplacer(text).toLowerCase();
         Pattern pattern = Pattern.compile("\\p{InCYRILLIC}+(-\\p{InCYRILLIC}+)?");
         Matcher matcher = pattern.matcher(clearText);
         while (matcher.find()) {
