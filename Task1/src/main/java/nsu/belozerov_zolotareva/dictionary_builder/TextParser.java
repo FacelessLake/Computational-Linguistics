@@ -19,6 +19,9 @@ public class TextParser {
     private int wordCounter;
     private int docCounter;
 
+    private int unknownLemmaCounter;
+    private int homonymCounter;
+
     public TextParser() {
         try {
             //debugWriter = new OutputStreamWriter(new FileOutputStream("debug.txt"), StandardCharsets.UTF_8);
@@ -32,6 +35,8 @@ public class TextParser {
         ocd = MorphologyDict.load("src/main/resources/dict.opcorpora.xml");
         wordCounter = 0;
         docCounter = 0;
+        unknownLemmaCounter = 0;
+        homonymCounter = 0;
     }
 
     public void increaseDocCounter() {
@@ -39,12 +44,16 @@ public class TextParser {
     }
 
     public String acuteReplacer(String acuteText) {
-        return acuteText.replaceAll("\\u0301", "").replaceAll("[\\u00C1\\u00E1]", "\u0430").replaceAll("[\\u00C9\\u00E9]", "\u0435").replaceAll("[\\u00D3\\u00F3]", "\u043E").replaceAll("\\u00FD", "\u0443");
+        return acuteText.replaceAll("\\u0301", "")
+                .replaceAll("[\\u00C1\\u00E1]", "\u0430")
+                .replaceAll("[\\u00C9\\u00E9]", "\u0435")
+                .replaceAll("[\\u00D3\\u00F3]", "\u043E")
+                .replaceAll("\\u00FD", "\u0443");
     }
 
     public List<String> tokenize(String text) {
         List<String> tokens = new ArrayList<>();
-        String clearText = acuteReplacer(text).toLowerCase();
+        String clearText = acuteReplacer(text).replaceAll("\u00AD", "").toLowerCase();
         Pattern pattern = Pattern.compile("\\p{InCYRILLIC}+(-\\p{InCYRILLIC}+)?");
         Matcher matcher = pattern.matcher(clearText);
         while (matcher.find()) {
@@ -90,6 +99,8 @@ public class TextParser {
              */
             wordPos = lemma.getGrammemes().get(0).getName();
 
+            wordData = new WordData(word, wordPos);
+
         } else {
             Double maxIpm = 0.0;
 
@@ -120,9 +131,14 @@ public class TextParser {
                 wordPos = possibleLemmas.get(0).getGrammemes().get(0).getName();
             }
 
+            wordData = new WordData(word, wordPos);
+
+            if (lemmasFrequency.get(wordData) == null) {
+                homonymCounter++;
+            }
+
         }
 
-        wordData = new WordData(word, wordPos);
         return wordData;
     }
 
@@ -167,6 +183,9 @@ public class TextParser {
                 }
             } else {
                 lemmaFreq = new WordDataFreq(docCounter);
+                if (wordData.pos().equals("UNKNOWN")) {
+                    unknownLemmaCounter++;
+                }
             }
             lemmasFrequency.put(wordData, lemmaFreq);
         }
@@ -186,7 +205,12 @@ public class TextParser {
 
     public void printAll() throws IOException {
         System.out.println("Number of texts in corpus: " + docCounter);
+        System.out.println("Words total: " + wordCounter);
         System.out.println("Unique lemmas found: " + lemmasFrequency.size());
+        System.out.println("Unknown lemmas: " + unknownLemmaCounter +
+                " (" + (unknownLemmaCounter * 100) / lemmasFrequency.size() + "%)");
+        System.out.println("Homonyms found: " + homonymCounter +
+                " (" + (homonymCounter * 100) / wordCounter + "%)");
         Map<WordData, WordDataFreq> result = sortByValue(lemmasFrequency);
         for (Map.Entry<WordData, WordDataFreq> res : result.entrySet()) {
             StringBuilder str = new StringBuilder();
