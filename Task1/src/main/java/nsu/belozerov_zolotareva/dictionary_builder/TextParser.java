@@ -14,7 +14,7 @@ public class TextParser {
     //private final Writer debugWriter;
     private final Writer outputWriter;
     private final FreqDictParser freqDictParser;
-    private final Map<WordData, Double> lemmasFrequency;
+    private final Map<WordData, WordDataFreq> lemmasFrequency;
     private final MorphologyDict ocd;
     private int wordCounter;
     private int docCounter;
@@ -95,7 +95,7 @@ public class TextParser {
 
             for (Lemma possibleLemma : possibleLemmas) {
                 String possibleWord = possibleLemma.getWord();
-                FrequencyWordData possibleData = freqDictParser.getData(possibleWord);
+                FreqDictData possibleData = freqDictParser.getData(possibleWord);
 
                 if (possibleData.ipm() > maxIpm) {
                     word = possibleWord;
@@ -148,39 +148,56 @@ public class TextParser {
                 wordData = this.resolveAmbiguity(possibleLemmas);
             }
 
-            Double lemmaIpm = lemmasFrequency.get(wordData);
-            if (lemmaIpm != null) {
-                lemmaIpm++;
+            WordDataFreq lemmaFreq = lemmasFrequency.get(wordData);
+            if (lemmaFreq != null) {
+                lemmaFreq.increaseEntryCounter();
+
+                //check for "в" letter in texts
+                /*
+                if (lemmaFreq.getLastTextNum() < docCounter - 1) {
+                    if (wordData.lemma().equals("\u0432") | wordData.lemma().equals("\u0412")) {
+                        System.out.println(tokens);
+                    }
+                }
+                 */
+
+                if (lemmaFreq.getLastTextNum() < docCounter) {
+                    lemmaFreq.increaseInTextCounter();
+                    lemmaFreq.setLastTextNum(docCounter);
+                }
             } else {
-                lemmaIpm = 1.0;
+                lemmaFreq = new WordDataFreq(docCounter);
             }
-            lemmasFrequency.put(wordData, lemmaIpm);
+            lemmasFrequency.put(wordData, lemmaFreq);
         }
     }
 
-    public static HashMap<WordData, Double> sortByValue(Map<WordData, Double> hm) {
+    public static HashMap<WordData, WordDataFreq> sortByValue(Map<WordData, WordDataFreq> hm) {
 
-        List<Map.Entry<WordData, Double>> list = new LinkedList<>(hm.entrySet());
-        list.sort((o1, o2) -> -(o1.getValue()).compareTo(o2.getValue()));
+        List<Map.Entry<WordData, WordDataFreq>> list = new LinkedList<>(hm.entrySet());
+        list.sort((o1, o2) -> -(o1.getValue().getEntryCounter()).compareTo(o2.getValue().getEntryCounter()));
 
-        HashMap<WordData, Double> temp = new LinkedHashMap<>();
-        for (Map.Entry<WordData, Double> aa : list) {
+        HashMap<WordData, WordDataFreq> temp = new LinkedHashMap<>();
+        for (Map.Entry<WordData, WordDataFreq> aa : list) {
             temp.put(aa.getKey(), aa.getValue());
         }
         return temp;
     }
 
     public void printAll() throws IOException {
-        System.out.println(lemmasFrequency.size());
-        Map<WordData, Double> result = sortByValue(lemmasFrequency);
-        for (Map.Entry<WordData, Double> res : result.entrySet()) {
+        System.out.println("Number of texts in corpus: " + docCounter);
+        System.out.println("Unique lemmas found: " + lemmasFrequency.size());
+        Map<WordData, WordDataFreq> result = sortByValue(lemmasFrequency);
+        for (Map.Entry<WordData, WordDataFreq> res : result.entrySet()) {
             StringBuilder str = new StringBuilder();
             str.append("<");
             str.append(res.getKey().lemma());
             str.append(", ");
             str.append(res.getKey().pos());
             str.append(", ");
-            str.append(String.format("%.3g", res.getValue() / wordCounter));
+            str.append(String.format("%.3g", res.getValue().getEntryCounter() / wordCounter));
+            str.append(", ");
+            str.append(String.format("%.3g", res.getValue().getInTextCounter() / docCounter));
             str.append(">\n");
             outputWriter.write(str.toString());
             outputWriter.flush();

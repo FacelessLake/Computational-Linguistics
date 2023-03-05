@@ -25,11 +25,14 @@ public class ArticlesParser extends DefaultHandler {
     }
 
     @Override
-    public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-        if (qName.equals("doc")){
+    public void startElement(String uri, String localName, String qName, Attributes attributes) {
+        if (qName.equals("doc")) {
             textParser.increaseDocCounter();
         }
+//        System.out.println(attributes.getValue("id"));
     }
+
+
 
     @Override
     public void characters(char[] ch, int start, int length) {

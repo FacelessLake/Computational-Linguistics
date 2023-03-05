@@ -10,7 +10,7 @@ public class FreqDictParser {
     private final int lemmaIndex;
     private final int posIndex;
     private final int ipmIndex;
-    private final Map<String, FrequencyWordData> records;
+    private final Map<String, FreqDictData> records;
 
     public FreqDictParser(String fileName) {
         this.fileName = fileName;
@@ -29,7 +29,7 @@ public class FreqDictParser {
                 String lemma = values[lemmaIndex];
 
                 if (!records.containsKey(lemma)) {
-                    records.put(lemma, new FrequencyWordData(values[posIndex], Double.parseDouble(values[ipmIndex])));
+                    records.put(lemma, new FreqDictData(values[posIndex], Double.parseDouble(values[ipmIndex])));
                 }
 
             }
@@ -38,10 +38,10 @@ public class FreqDictParser {
         }
     }
 
-    public FrequencyWordData getData(String lemma) {
-        FrequencyWordData data = records.get(lemma);
+    public FreqDictData getData(String lemma) {
+        FreqDictData data = records.get(lemma);
         if (data == null) {
-            return new FrequencyWordData("s", 0.0);
+            return new FreqDictData("s", 0.0);
         }
         return data;
     }
