@@ -16,6 +16,8 @@ public class TextParser {
     private final FreqDictParser freqDictParser;
     private final Map<WordData, Double> lemmasFrequency;
     private final MorphologyDict ocd;
+    private int wordCounter;
+    private int docCounter;
 
     public TextParser() {
         try {
@@ -28,6 +30,12 @@ public class TextParser {
         freqDictParser.parse();
         lemmasFrequency = new HashMap<>();
         ocd = MorphologyDict.load("src/main/resources/dict.opcorpora.xml");
+        wordCounter = 0;
+        docCounter = 0;
+    }
+
+    public void increaseDocCounter() {
+        docCounter++;
     }
 
     public String acuteReplacer(String acuteText) {
@@ -121,7 +129,7 @@ public class TextParser {
 
     public void parseOneText(String text) {
         List<String> tokens = this.tokenize(text);
-
+        wordCounter += tokens.size();
         for (String token : tokens) {
             List<Lemma> lemmaList = ocd.getLemmas(token);
             WordData wordData;
@@ -153,9 +161,7 @@ public class TextParser {
     public static HashMap<WordData, Double> sortByValue(Map<WordData, Double> hm) {
 
         List<Map.Entry<WordData, Double>> list = new LinkedList<>(hm.entrySet());
-
         list.sort((o1, o2) -> -(o1.getValue()).compareTo(o2.getValue()));
-
 
         HashMap<WordData, Double> temp = new LinkedHashMap<>();
         for (Map.Entry<WordData, Double> aa : list) {
@@ -174,7 +180,7 @@ public class TextParser {
             str.append(", ");
             str.append(res.getKey().pos());
             str.append(", ");
-            str.append(res.getValue());
+            str.append(String.format("%.3g", res.getValue() / wordCounter));
             str.append(">\n");
             outputWriter.write(str.toString());
             outputWriter.flush();
