@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 public class TextParser {
 
-    private final Writer debugWriter;
+    //private final Writer debugWriter;
     private final Writer outputWriter;
     private final FreqDictParser freqDictParser;
     private final Map<WordData, Double> lemmasFrequency;
@@ -19,7 +19,7 @@ public class TextParser {
 
     public TextParser() {
         try {
-            debugWriter = new OutputStreamWriter(new FileOutputStream("debug.txt"), StandardCharsets.UTF_8);
+            //debugWriter = new OutputStreamWriter(new FileOutputStream("debug.txt"), StandardCharsets.UTF_8);
             outputWriter = new OutputStreamWriter(new FileOutputStream("res.txt"), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -120,18 +120,21 @@ public class TextParser {
 
         for (String token : tokens) {
             List<Lemma> lemmaList = ocd.getLemmas(token);
+            WordData wordData;
             if (lemmaList == null) {
+                /*
                 try {
                     debugWriter.write("Not in dictionary: " + token + "\n");
                     debugWriter.flush();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-                continue;
+                 */
+                wordData = new WordData(token, "UNKNOWN");
+            } else {
+                ArrayList<Lemma> possibleLemmas = new ArrayList<>(lemmaList);
+                wordData = this.resolveAmbiguity(possibleLemmas);
             }
-
-            ArrayList<Lemma> possibleLemmas = new ArrayList<>(lemmaList);
-            WordData wordData = this.resolveAmbiguity(possibleLemmas);
 
             Double lemmaIpm = lemmasFrequency.get(wordData);
             if (lemmaIpm != null) {
