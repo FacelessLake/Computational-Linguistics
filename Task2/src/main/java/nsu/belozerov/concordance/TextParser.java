@@ -80,7 +80,7 @@ public class TextParser {
 
     private void addRightContexts(StringBuilder lemmatizedText, int index) {
         for (int i = 1; i <= this.length; i++) {
-            String suffix = getNextWords(lemmatizedText, index + this.substring.length(), i);
+            String suffix = getNextWords(lemmatizedText, index + this.substring.length() - 1, i );
             if (Objects.nonNull(suffix)) {
                 this.rightContexts.merge(new ContextHolder(this.substring, "", suffix), 1, Integer::sum);
             }
@@ -91,7 +91,7 @@ public class TextParser {
         for (int i = 2; i <= this.length; i++) {
             for (int j = 1; j < i; j++) {
                 String prefix = getPreviousWords(lemmatizedText, index, j);
-                String suffix = getNextWords(lemmatizedText, index + this.substring.length(), i - j);
+                String suffix = getNextWords(lemmatizedText, index + this.substring.length() - 1, i - j);
                 if (Objects.nonNull(prefix) && Objects.nonNull(suffix)) {
                     this.leftRightContexts.merge(new ContextHolder(this.substring, prefix, suffix), 1, Integer::sum);
                 }
