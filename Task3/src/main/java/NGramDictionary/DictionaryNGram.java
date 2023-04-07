@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DictionaryNGram {
-
-    private DictionaryNGram parent1;
-    private DictionaryNGram parent2;
     private final String parent1Content;
     private final String parent2Content;
 
@@ -36,22 +33,6 @@ public class DictionaryNGram {
         }
         parent1Content = res1.trim();
         parent2Content = res2.trim();
-    }
-
-    public DictionaryNGram getParent1() {
-        return parent1;
-    }
-
-    public void setParent1(DictionaryNGram parent1) {
-        this.parent1 = parent1;
-    }
-
-    public DictionaryNGram getParent2() {
-        return parent2;
-    }
-
-    public void setParent2(DictionaryNGram parent2) {
-        this.parent2 = parent2;
     }
 
     public String getParent1Content() {
