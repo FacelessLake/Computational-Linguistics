@@ -1,0 +1,8 @@
+package ngram;
+
+public enum NGramType {
+  ROOT_NGRAM,
+  LEFT_HAND_EXPANSION,
+  RIGHT_HAND_EXPANSION,
+  MULTI_EXPANSION
+}
