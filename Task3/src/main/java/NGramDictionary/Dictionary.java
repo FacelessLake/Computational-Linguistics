@@ -6,7 +6,6 @@ import java.util.*;
 
 public class Dictionary {
     private final Writer outputWriter;
-
     private final List<DictionaryNGram> nGrams;
     private final Map<String, DictionaryNGram> phraseToNGram; // Временная мапа для построения дерева
     private final Map<String, List<DictionaryNGram>> wordsToNGrams;
@@ -14,10 +13,10 @@ public class Dictionary {
     public Dictionary(String dictionaryFileName) throws FileNotFoundException {
         DictionaryLoader loader = new DictionaryLoader(dictionaryFileName);
         nGrams = loader.load();
-        outputWriter = new OutputStreamWriter(new FileOutputStream("result.txt"), StandardCharsets.UTF_8);
+        File targetFile = new File("src/main/resources", "search_result.txt");
+        outputWriter = new OutputStreamWriter(new FileOutputStream(targetFile), StandardCharsets.UTF_8);
         phraseToNGram = new HashMap<>();
         wordsToNGrams = new HashMap<>();
-
         buildTree();
     }
 
@@ -44,7 +43,6 @@ public class Dictionary {
                 phraseToNGram.put(nGram.getContent(), nGram);
             }
         }
-
         int i = 3;
         while (buildNextLevel(i)) {
             i++;

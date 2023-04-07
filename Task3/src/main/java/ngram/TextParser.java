@@ -17,8 +17,6 @@ import java.util.regex.Pattern;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class TextParser {
-//    private static final String frequencyDictionary = "src/main/resources/frequency_dict.txt";
-//    private static final String opencorporaDictionary = "src/main/resources/dict.opcorpora.xml";
     private final FrequencyDictionaryParser frequencyDictionaryParser;
     private final Dictionary dictionary;
     private final Map<NGramHolder, NGramDescriptor> rootNGrams;
@@ -42,8 +40,8 @@ public class TextParser {
     }
 
     public void parseOneText(String text) {
+        int startIndex = this.lemmatizedText.length();
         lemmatize(text);
-        int startIndex = this.textIndices.lastKey();
         while (startIndex != -1) {
             int endIndex = getNextWords(startIndex, 2);
             if (endIndex != -1) {
@@ -80,7 +78,7 @@ public class TextParser {
     }
 
     private void extractNGrams(NGramType nGramType, Map<NGramHolder, NGramDescriptor> rootNGrams, Map<NGramDescriptor, NGram> stableNGrams) {
-        rootNGrams.values().removeIf(nGramDescriptor -> nGramDescriptor.getOccurrencesCount() < 2 || ((double) nGramDescriptor.getTextCount()) / ((double) this.textIndices.get(this.textIndices.lastKey())) < this.threshold);
+        rootNGrams.values().removeIf(nGramDescriptor -> nGramDescriptor.getOccurrencesCount() < 10);
         Map<NGramHolder, NGramDescriptor> leftHandExpansions = new HashMap<>();
         Map<NGramHolder, NGramDescriptor> rightHandExpansions = new HashMap<>();
         rootNGrams.values().forEach(nGramDiscriptor -> processNGram(nGramType, nGramDiscriptor, stableNGrams, leftHandExpansions, rightHandExpansions));
@@ -122,7 +120,7 @@ public class TextParser {
         nGramDescriptor.addStartIndex(startIndex);
         nGramDescriptor.increaseOccurrencesCount();
         List<Integer> startIndices = nGramDescriptor.getStartIndices();
-        if (startIndices.size() < 2 || !this.textIndices.get(this.textIndices.floorKey(startIndices.get(startIndices.size() - 2))).equals(this.textIndices.get(this.textIndices.floorKey(startIndices.get(startIndices.size() - 1))))) {
+        if (startIndices.size() < 2 || this.textIndices.get(this.textIndices.floorKey(startIndices.get(startIndices.size() - 2))) < (this.textIndices.get(this.textIndices.floorKey(startIndices.get(startIndices.size() - 1))))) {
             nGramDescriptor.increaseTextCount();
         }
     }

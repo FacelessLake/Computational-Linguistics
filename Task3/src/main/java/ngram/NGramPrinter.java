@@ -26,7 +26,7 @@ public class NGramPrinter {
             str.append(", ");
             str.append(res.getAbsoluteFrequency());
             str.append(", ");
-            str.append((int)res.getTextFrequency());
+            str.append(res.getTextFrequency());
             str.append(", ");
             str.append(res.getIdf());
             str.append(">\n");
