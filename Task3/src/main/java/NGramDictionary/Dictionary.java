@@ -5,8 +5,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Dictionary {
-    private final Writer outputWriter;
-
     private final List<DictionaryNGram> nGrams;
     private final Map<String, DictionaryNGram> phraseToNGram; // Временная мапа для построения дерева
     private final Map<String, List<DictionaryNGram>> wordsToNGrams;
@@ -14,7 +12,6 @@ public class Dictionary {
     public Dictionary(String dictionaryFileName) throws FileNotFoundException {
         DictionaryLoader loader = new DictionaryLoader(dictionaryFileName);
         nGrams = loader.load();
-        outputWriter = new OutputStreamWriter(new FileOutputStream("result.txt"), StandardCharsets.UTF_8);
         phraseToNGram = new HashMap<>();
         wordsToNGrams = new HashMap<>();
 
@@ -83,18 +80,6 @@ public class Dictionary {
         return res;
     }
 
-    private List<DictionaryNGram> getSubtreeWithNested(DictionaryNGram nGram, String nestedNGram) {
-        List<DictionaryNGram> res = new ArrayList<>();
-        if (!nestedNGram.contains(nGram.getContent())) {
-            return res;
-        }
-        res.add(nGram);
-        for (DictionaryNGram child : nGram.getChildren()) {
-            res.addAll(getSubtreeWithNested(child, nestedNGram));
-        }
-        return res;
-    }
-
     // получает объединение всех списков (N-грамы в результате не повторяются)
     private List<DictionaryNGram> getUnion(List<List<DictionaryNGram>> lists) {
         List<DictionaryNGram> res = new ArrayList<>();
@@ -108,8 +93,9 @@ public class Dictionary {
         return res;
     }
 
-    // печатает все в списке
+    // печатает все в списке в файл
     private void printAllNGrams(List<DictionaryNGram> list) throws IOException {
+        Writer outputWriter = new OutputStreamWriter(new FileOutputStream("result.txt"), StandardCharsets.UTF_8);
         if (list == null) return;
         for (DictionaryNGram nGram : list) {
             outputWriter.write(nGram.toString() + "\n");
@@ -119,23 +105,22 @@ public class Dictionary {
 
 
     // находит все N-граммы, включающие заданное слово
-    public void findNGramsByWord(String word) throws IOException {
+    public List<DictionaryNGram> findNGramsByWord(String word) {
         List<List<DictionaryNGram>> allWordNGrams = new ArrayList<>();
         List<DictionaryNGram> shortNGrams = wordsToNGrams.get(word);
         if (shortNGrams == null) {
-            outputWriter.write("nothing found!");
-            outputWriter.flush();
-            return;
+            return new ArrayList<>();
         }
         for (DictionaryNGram nGram : shortNGrams) {
             allWordNGrams.add(getSubtree(nGram));
         }
-        printAllNGrams(getUnion(allWordNGrams));
+        //printAllNGrams(getUnion(allWordNGrams));
+        return getUnion(allWordNGrams);
     }
 
 
     // находит все вложенные N-граммы
-    public void findNestedNGrams(String string) throws IOException {
+    public List<DictionaryNGram> findNestedNGrams(String string) {
         List<DictionaryNGram> allStringNGrams = new ArrayList<>();
         String[] split = string.split("\\s");
         for (int i = 2; i <= split.length; i++) {
@@ -145,9 +130,10 @@ public class Dictionary {
                     window = window + " " + split[j + k];
                 }
                 DictionaryNGram nGram = phraseToNGram.get(window.trim());
-                if (nGram!=null && !allStringNGrams.contains(nGram)) allStringNGrams.add(nGram);
+                if (nGram != null && !allStringNGrams.contains(nGram)) allStringNGrams.add(nGram);
             }
         }
-        printAllNGrams(allStringNGrams);
+        //printAllNGrams(allStringNGrams);
+        return allStringNGrams;
     }
 }
